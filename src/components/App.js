@@ -31,53 +31,58 @@ const Header = () => (
 
 const Row = ({ row }) => (
   <tr>
-    <th>{row.ID}</th>
-    <th>{row.JobTitle}</th>
-    <th>{row.EmailAddress}</th>
-    <th>{row.FirstName}</th>
-    <th>{row.LastName}</th>
-    <th>{row.University}</th>
-    <th>{row.Country}</th>
-    <th>{row.IBAN}</th>
-    <th>{row.CarModel}</th>
+    <Cell content={row.ID}/>
+    <Cell content={row.JobTitle}/>
+    <Cell content={row.EmailAddress}/>
+    <Cell content={row.FirstName}/>
+    <Cell content={row.LastName}/>
+    <Cell content={row.University}/>
+    <Cell content={row.Country}/>
+    <Cell content={row.IBAN}/>
+    <Cell content={row.CarModel}/>
   </tr>
 )
 
-const App = () => {
+const Cell = ({ content }) =>  {
+  const [isVisible, setIsVisible] = useState(false);
   const selectedDivRef = useRef(null);
-  const [rows, setRows] = useState(5000)
-  const debouncedSetRows = debounce(val => setRows(val), 200)
 
-  const handleClick = (text) => navigator.clipboard.writeText(text);
-  const handleRowsChange = (e) => debouncedSetRows(e.target.value)
+  const handleClick = (e) => {
+    navigator.clipboard.writeText(e.currentTarget.firstChild.textContent);
+  }
 
   const handleMouseLeave = ({ target }) => {
-      if(target.firstChild.tagName === 'DIV') {
-        target.firstChild.removeEventListener('click', handleClick)
-        target.firstChild.remove();
-        target.removeEventListener('mouseleave', handleMouseLeave)
+      if(target.lastChild.tagName === 'DIV') {
+        setIsVisible(false);
       }
   }
 
-  const handleMouseOver = ({ target: actualTarget }) => {
-    const target = actualTarget.tagName === 'DIV' ? actualTarget.parentNode : actualTarget;
+  const handleMouseOver = ({ currentTarget }) => {
+    const targetIsCell = currentTarget.parentNode.parentNode.tagName === 'TBODY';
 
-    if(target !== selectedDivRef.current && target.tagName === 'TH') {
-      const text = target.innerText;
-      const div = document.createElement('div');
-
-      div.addEventListener('click', () => handleClick(text))
-      target.addEventListener('mouseleave', handleMouseLeave)
-      div.innerText = 'Click to Copy';
-      selectedDivRef.current = target;
-      target.prepend(div)
+    if(currentTarget !== selectedDivRef.current && targetIsCell) {
+        selectedDivRef.current = currentTarget;
+        setIsVisible(true)
     };
   }
 
   return (
+    <th onMouseOver={handleMouseOver}  onMouseLeave={handleMouseLeave} onClick={handleClick}>
+      {content}
+      {isVisible && <div>Click to Copy</div>}
+    </th>
+  )
+}
+
+const App = () => {
+  const [rows, setRows] = useState(1000)
+  const debouncedSetRows = debounce(val => setRows(val), 400)
+  const handleRowsChange = (e) => debouncedSetRows(e.target.value)
+
+  return (
     <Styles>
       <RowsSelector rows={rows} onChange={handleRowsChange}/>
-      <table onMouseOver={handleMouseOver}>
+      <table>
         <thead>
          <Header/>
         </thead>
