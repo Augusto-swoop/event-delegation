@@ -45,32 +45,33 @@ const Row = ({ row }) => (
 
 const App = () => {
   const selectedDivRef = useRef(null);
-  const [rows, setRows] = useState(5000)
-  const debouncedSetRows = debounce(val => setRows(val), 200)
+  const [rows, setRows] = useState(1000)
+  const debouncedSetRows = debounce(val => setRows(val), 400)
 
   const handleClick = (text) => navigator.clipboard.writeText(text);
   const handleRowsChange = (e) => debouncedSetRows(e.target.value)
 
   const handleMouseLeave = ({ target }) => {
-      if(target.firstChild.tagName === 'DIV') {
-        target.firstChild.removeEventListener('click', handleClick)
-        target.firstChild.remove();
+      if(target.lastChild.tagName === 'DIV') {
+        target.removeEventListener('click', handleClick)
+        target.lastChild.remove();
         target.removeEventListener('mouseleave', handleMouseLeave)
       }
   }
 
   const handleMouseOver = ({ target: actualTarget }) => {
     const target = actualTarget.tagName === 'DIV' ? actualTarget.parentNode : actualTarget;
+    const targetIsCell = target.tagName === 'TH' && target.parentNode.parentNode.tagName === 'TBODY';
 
-    if(target !== selectedDivRef.current && target.tagName === 'TH') {
-      const text = target.innerText;
-      const div = document.createElement('div');
+    if(target !== selectedDivRef.current && targetIsCell) {
+        const text = target.innerText;
+        const div = document.createElement('div');
 
-      div.addEventListener('click', () => handleClick(text))
-      target.addEventListener('mouseleave', handleMouseLeave)
-      div.innerText = 'Click to Copy';
-      selectedDivRef.current = target;
-      target.prepend(div)
+        target.addEventListener('click', () => handleClick(text))
+        target.addEventListener('mouseleave', handleMouseLeave)
+        div.innerText = 'Click to Copy';
+        selectedDivRef.current = target;
+        target.append(div)
     };
   }
 

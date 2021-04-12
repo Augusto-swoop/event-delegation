@@ -13,6 +13,10 @@ const Styles = styled.div`
     align-items: center;
   }
 
+  & div {
+    font-size: 10px;
+  }
+
   & label {
     font-size: 20px;
   }
